@@ -1,11 +1,21 @@
 const database = require("./database");
 const { ApolloServer, gql } = require("apollo-server");
+
 const typeDefs = gql`
   type Query {
     teams: [Team]
     equipments: [Equipment]
     supplies: [Supply]
     team(id: Int): Team
+  }
+  type Mutation {
+    addEquipment(
+      id: String
+      used_by: String
+      count: Int
+      new_or_used: String
+    ): Equipment
+    deleteEquipment(id: String): Equipment
   }
   type Team {
     id: Int
@@ -41,6 +51,21 @@ const resolvers = {
       database.teams.filter((team) => team.id === args.id)[0],
     equipments: () => database.equipments,
     supplies: () => database.supplies,
+  },
+  Mutation: {
+    addEquipment: (parent, args, context, info) => {
+      database.equipments.push(args);
+      return args;
+    },
+    deleteEquipment: (parent, args, context, info) => {
+      const deleted = database.equipments.filter(
+        (equipment) => equipment.id === args.id
+      )[0];
+      database.equipments = database.equipments.filter(
+        (equipment) => equipment.id !== args.id
+      );
+      return deleted;
+    },
   },
 };
 const server = new ApolloServer({ typeDefs, resolvers });
